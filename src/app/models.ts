@@ -1,7 +1,6 @@
 export type VehicleType = 'chico' | 'mediano' | 'grande' | 'extra';
-
 export type PackageId = 'completo' | 'exterior' | 'aspirado' | 'premium';
-
+export type PayMethod = 'efectivo' | 'tarjeta' | 'saldo';
 export type AddonId =
   | 'aroma_corcho'
   | 'bolsa_basura'
