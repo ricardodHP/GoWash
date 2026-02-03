@@ -22,24 +22,51 @@
           <div class="grid">
             <button class="veh" type="button" [class.selected]="vehicle()==='chico'" (click)="vehicle.set('chico')">
               <div class="ico">
-                <!-- Si metes imágenes, cambias el emoji por <img [src]="icons.chico" /> -->
-                🚗
+                <svg viewBox="0 0 80 50" aria-hidden="true">
+                  <rect x="10" y="24" width="50" height="12" rx="6"></rect>
+                  <polygon points="22,24 34,14 52,14 60,24"></polygon>
+                  <circle cx="24" cy="40" r="6"></circle>
+                  <circle cx="54" cy="40" r="6"></circle>
+                </svg>
               </div>
               <div><div class="lbl">Chico</div><small>$100</small></div>
             </button>
 
             <button class="veh" type="button" [class.selected]="vehicle()==='mediano'" (click)="vehicle.set('mediano')">
-              <div class="ico">🚙</div>
+              <div class="ico">
+                <svg viewBox="0 0 90 50" aria-hidden="true">
+                  <rect x="8" y="24" width="62" height="13" rx="6"></rect>
+                  <polygon points="22,24 36,12 64,12 72,24"></polygon>
+                  <circle cx="26" cy="40" r="6"></circle>
+                  <circle cx="58" cy="40" r="6"></circle>
+                </svg>
+              </div>
               <div><div class="lbl">Mediano</div><small>$120</small></div>
             </button>
 
             <button class="veh" type="button" [class.selected]="vehicle()==='grande'" (click)="vehicle.set('grande')">
-              <div class="ico">🛻</div>
+              <div class="ico">
+                <svg viewBox="0 0 90 50" aria-hidden="true">
+                  <rect x="10" y="24" width="40" height="12" rx="4"></rect>
+                  <rect x="50" y="20" width="22" height="16" rx="4"></rect>
+                  <polygon points="22,24 32,16 44,16 48,24"></polygon>
+                  <circle cx="24" cy="40" r="6"></circle>
+                  <circle cx="56" cy="40" r="6"></circle>
+                </svg>
+              </div>
               <div><div class="lbl">Grande</div><small>$150</small></div>
             </button>
 
             <button class="veh" type="button" [class.selected]="vehicle()==='extra'" (click)="vehicle.set('extra')">
-              <div class="ico">🚚</div>
+              <div class="ico">
+                <svg viewBox="0 0 90 50" aria-hidden="true">
+                  <rect x="8" y="18" width="36" height="20" rx="3"></rect>
+                  <rect x="44" y="22" width="30" height="16" rx="3"></rect>
+                  <rect x="18" y="24" width="12" height="6" rx="2" fill="currentColor"></rect>
+                  <circle cx="22" cy="40" r="6"></circle>
+                  <circle cx="54" cy="40" r="6"></circle>
+                </svg>
+              </div>
               <div><div class="lbl">Extra grande</div><small>(placeholder)</small></div>
             </button>
           </div>
