@@ -1,22 +1,11 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SummaryStickyComponent } from './summary-sticky.component';
-import { PricingBreakdown, PreServicioSelection } from './models';
+import { PricingService } from './pricing.service';
+import { AddonId, PackageId, PreServicioSelection, VehicleType } from './models';
 
-type VehicleType = 'chico' | 'mediano' | 'grande' | 'extra';
-type PackageId = 'completo' | 'exterior' | 'aspirado' | 'premium';
 type PayMethod = 'efectivo' | 'tarjeta' | 'saldo';
-
-type AddonId =
-  | 'aroma_corcho'
-  | 'bolsa_basura'
-  | 'cera_lujo'
-  | 'par_tapetes'
-  | 'corcho'
-  | 'ecoloco'
-  | 'extra_lodo'
-  | 'extra_sucio';
 
 interface Addon {
   id: AddonId;
@@ -513,6 +502,8 @@ interface Addon {
   `]
 })
 export class AppComponent {
+  private pricingService = inject(PricingService);
+
   // -------------------------
   // State (Signals)
   // -------------------------
@@ -530,14 +521,6 @@ export class AppComponent {
 
   carDesc = '';
 
-  // Base prices by package (puedes ajustar)
-  private pkgPrices: Record<PackageId, number> = {
-    completo: 83,
-    exterior: 65,
-    aspirado: 75,
-    premium: 140
-  };
-
   // Duration by package (mock)
   private pkgDuration: Record<PackageId, number> = {
     completo: 60,
@@ -546,25 +529,13 @@ export class AppComponent {
     premium: 90
   };
 
-  // Vehicle multipliers (mock, opcional). Si no quieres variación, pon todo en 1.
-  private vehicleFactor: Record<VehicleType, number> = {
-    chico: 1.0,
-    mediano: 1.1,
-    grande: 1.25,
-    extra: 1.4
-  };
-
   // Addons catalog
   private catalog: Addon[] = [
-    { id:'aroma_corcho', label:'Aroma a corcho', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-    { id:'bolsa_basura', label:'Bolsa de basura', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-    { id:'cera_lujo', label:'Cera de lujo', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-    { id:'par_tapetes', label:'Par de Tapetes (2 unid)', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-
-    { id:'corcho', label:'Corcho', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
-    { id:'ecoloco', label:'Ecoloco', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
-    { id:'extra_lodo', label:'Extra lodo', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
-    { id:'extra_sucio', label:'Extra sucio', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
+    ...this.pricingService.catalog.map((item) => ({
+      ...item,
+      qtyEnabled: true,
+      defaultQty: 1,
+    })),
   ];
 
   // Enabled + qty by addon id
@@ -593,12 +564,9 @@ export class AppComponent {
   // -------------------------
   // Computed
   // -------------------------
-  basePrice = computed(() => {
-    const p = this.pkgPrices[this.pkg()];
-    const factor = this.vehicleFactor[this.vehicle()];
-    // redondeo a 2 decimales (MXN)
-    return Math.round(p * factor * 100) / 100;
-  });
+  pricingBreakdown = computed(() => this.pricingService.getBreakdown(this.buildSelection()));
+
+  basePrice = computed(() => this.pricingBreakdown().base);
 
   durationMinutes = computed(() => this.pkgDuration[this.pkg()]);
 
@@ -612,19 +580,21 @@ export class AppComponent {
       .filter(a => enabledMap[a.id])
       .map(a => {
         const qty = Math.max(1, qtyMap[a.id] ?? 1);
-        const subtotal = Math.round(a.price * qty * 100) / 100;
-        return { ...a, qty, subtotal };
+        const unitPrice = this.pricingService.getAddonUnitPrice(a.id);
+        const subtotal = this.round(unitPrice * qty);
+        return {
+          ...a,
+          label: this.pricingService.getAddonLabel(a.id),
+          price: unitPrice,
+          qty,
+          subtotal,
+        };
       });
   });
 
-  extrasTotal = computed(() => {
-    return this.selectedAddons().reduce((acc, it) => acc + it.subtotal, 0);
-  });
+  extrasTotal = computed(() => this.pricingBreakdown().extras);
 
-  total = computed(() => {
-    const t = this.basePrice() + this.extrasTotal();
-    return Math.round(t * 100) / 100;
-  });
+  total = computed(() => this.pricingBreakdown().total);
 
   selection = computed<PreServicioSelection>(() => ({
     vehicle: this.vehicleLabel(this.vehicle()),
@@ -710,5 +680,26 @@ export class AppComponent {
 
   scrollTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private buildSelection(): PreServicioSelection {
+    const enabledMap = this.addonEnabled();
+    const qtyMap = this.addonQty();
+    const addons = this.catalog
+      .filter((addon) => enabledMap[addon.id])
+      .map((addon) => ({
+        id: addon.id,
+        qty: Math.max(1, qtyMap[addon.id] ?? 1),
+      }));
+
+    return {
+      vehicle: this.vehicle(),
+      packageId: this.pkg(),
+      addons,
+    };
+  }
+
+  private round(n: number): number {
+    return Math.round(n * 100) / 100;
   }
 }
