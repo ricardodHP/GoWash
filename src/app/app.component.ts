@@ -21,6 +21,8 @@ interface Addon {
 @Component({
   selector: 'app-root',
   standalone: true,
+  imports: [CommonModule, FormsModule, CurrencyPipe],
+  templateUrl: './app.component.html',
   imports: [PreServicioComponent],
   template: `<app-pre-servicio />`,
 })
