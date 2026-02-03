@@ -16,7 +16,9 @@
             "outputPath": "dist/go-wash",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [],
+            "polyfills": [
+               "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
@@ -66,7 +68,9 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "polyfills": [],
+            "polyfills": [
+               "zone.js"
+            ],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               "src/favicon.ico",
@@ -80,5 +84,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "7c2f547e-b7eb-4ea2-87ca-e715d6f5e758"
   }
 }
