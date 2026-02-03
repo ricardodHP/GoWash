@@ -1,5 +1,5 @@
 import { Component, computed, signal } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { PricingService } from './pricing.service';
 import { AddonId, PackageId, VehicleType } from './models';
 import { SummaryStickyComponent } from './summary-sticky.component';
@@ -7,7 +7,7 @@ import { SummaryStickyComponent } from './summary-sticky.component';
 @Component({
   selector: 'app-pre-servicio',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, SummaryStickyComponent],
+  imports: [CommonModule, SummaryStickyComponent],
   template: `
     <section class="shell">
       <div class="config">
@@ -18,7 +18,7 @@ import { SummaryStickyComponent } from './summary-sticky.component';
           <div class="choices">
             <button
               type="button"
-              *ngFor="let vehicle of vehicles"
+              *ngFor="let vehicle of vehicles; trackBy: trackVehicle"
               [class.selected]="vehicleType() === vehicle.type"
               (click)="vehicleType.set(vehicle.type)">
               {{ vehicle.label }}
@@ -27,7 +27,7 @@ import { SummaryStickyComponent } from './summary-sticky.component';
         </div>
         <div class="block">
           <label>Paquete</label>
-          <select [value]="pkg()" (change)="pkg.set(($any($event.target)).value)">
+          <select [value]="pkg()" (change)="pkg.set(($event.target as HTMLSelectElement).value)">
             <option *ngFor="let item of packages" [value]="item.id">{{ item.label }}</option>
           </select>
         </div>
@@ -36,7 +36,7 @@ import { SummaryStickyComponent } from './summary-sticky.component';
           <div class="choices">
             <button
               type="button"
-              *ngFor="let item of addons"
+              *ngFor="let item of addons; trackBy: trackAddon"
               [class.selected]="enabled(item.id)"
               (click)="toggleAddon(item.id)">
               {{ item.label }}
@@ -146,5 +146,13 @@ export class PreServicioComponent {
   toggleAddon(id: AddonId): void {
     const current = this.addonSelection();
     this.addonSelection.set({ ...current, [id]: !current[id] });
+  }
+
+  trackVehicle(_index: number, vehicle: { type: VehicleType }): VehicleType {
+    return vehicle.type;
+  }
+
+  trackAddon(_index: number, addon: { id: AddonId }): AddonId {
+    return addon.id;
   }
 }
