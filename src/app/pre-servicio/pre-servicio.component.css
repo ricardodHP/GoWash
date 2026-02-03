@@ -21,10 +21,12 @@
 
     .card{background:#fff;border:1px solid #e6edf5;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:14px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .veh{border:1px solid #e6edf5;border-radius:14px;padding:12px 10px;background:#fff;display:flex;gap:10px;align-items:center;cursor:pointer;transition:.15s ease;text-align:left}
-    .veh:hover{transform:translateY(-1px)}
-    .veh.selected{border-color:rgba(47,125,246,.35);box-shadow:0 8px 18px rgba(47,125,246,.12);outline:2px solid rgba(47,125,246,.16)}
-    .ico{width:42px;height:42px;border-radius:12px;background:#f2f7ff;border:1px solid #e8f0ff;display:grid;place-items:center;flex:0 0 auto}
+    .veh{border:1px solid #cfd6de;border-radius:12px;padding:12px 8px;background:#fff;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;cursor:pointer;transition:.15s ease;text-align:center;min-height:96px}
+    .veh:hover{transform:translateY(-1px);box-shadow:0 6px 12px rgba(0,0,0,.06)}
+    .veh.selected{border-color:#0aa9c6;box-shadow:0 8px 18px rgba(10,169,198,.18);outline:2px solid rgba(10,169,198,.18)}
+    .ico{width:60px;height:40px;display:grid;place-items:center;flex:0 0 auto;color:#5e6b78}
+    .ico svg{width:60px;height:40px;fill:currentColor}
+    .veh.selected .ico{color:#0aa9c6}
     .lbl{font-weight:1000;font-size:13px}
     small{display:block;color:#7a8797;font-weight:800;font-size:11px;margin-top:2px}
 
