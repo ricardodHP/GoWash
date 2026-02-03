@@ -1,3 +1,5 @@
+import { Component } from '@angular/core';
+import { PreServicioComponent } from './pre-servicio/pre-servicio.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +21,10 @@ interface Addon {
 @Component({
   selector: 'app-root',
   standalone: true,
+  imports: [PreServicioComponent],
+  template: `<app-pre-servicio />`,
+})
+export class AppComponent {}
   imports: [CommonModule, FormsModule, CurrencyPipe, SummaryStickyComponent],
   template: `
   <div class="appShell">
