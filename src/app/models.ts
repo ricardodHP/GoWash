@@ -1,7 +1,6 @@
 export type VehicleType = 'chico' | 'mediano' | 'grande' | 'extra';
-export type PackageId = 'completo'; // por ahora 1 paquete; luego lo expandimos
+export type PackageId = 'completo' | 'exterior' | 'aspirado' | 'premium';
 export type PayMethod = 'efectivo' | 'tarjeta' | 'saldo';
-
 export type AddonId =
   | 'aroma_corcho'
   | 'bolsa_basura'
@@ -19,7 +18,7 @@ export interface AddonCatalogItem {
   section: 'adicional' | 'especial';
 }
 
-export interface SelectedAddon {
+export interface AddonSelection {
   id: AddonId;
   qty: number;
 }
@@ -27,21 +26,10 @@ export interface SelectedAddon {
 export interface PreServicioSelection {
   vehicle: VehicleType;
   packageId: PackageId;
-  carDescription: string;
-
-  details: {
-    aspiradoCajuela: boolean;
-    aromatizante: boolean;
-    aroma: 'coco' | 'canela' | 'auto' | 'brisa';
-    armorTablero: boolean;
-    armorLlantas: boolean;
-  };
-
-  addons: SelectedAddon[];
-  paymentMethod: PayMethod;
+  addons: AddonSelection[];
 }
 
-export interface PricingBreakdownLine {
+export interface PricingLine {
   key: string;
   label: string;
   amount: number;
@@ -51,5 +39,5 @@ export interface PricingBreakdown {
   base: number;
   extras: number;
   total: number;
-  lines: PricingBreakdownLine[];
+  lines: PricingLine[];
 }
