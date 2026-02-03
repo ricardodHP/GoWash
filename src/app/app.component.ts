@@ -1,20 +1,13 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component } from '@angular/core';
+import { PreServicioComponent } from './pre-servicio/pre-servicio.component';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SummaryStickyComponent } from './summary-sticky.component';
+import { PricingService } from './pricing.service';
+import { AddonId, PackageId, PreServicioSelection, VehicleType } from './models';
 
-type VehicleType = 'chico' | 'mediano' | 'grande' | 'extra';
-type PackageId = 'completo' | 'exterior' | 'aspirado' | 'premium';
 type PayMethod = 'efectivo' | 'tarjeta' | 'saldo';
-
-type AddonId =
-  | 'aroma_corcho'
-  | 'bolsa_basura'
-  | 'cera_lujo'
-  | 'par_tapetes'
-  | 'corcho'
-  | 'ecoloco'
-  | 'extra_lodo'
-  | 'extra_sucio';
 
 interface Addon {
   id: AddonId;
@@ -30,6 +23,243 @@ interface Addon {
   standalone: true,
   imports: [CommonModule, FormsModule, CurrencyPipe],
   templateUrl: './app.component.html',
+  imports: [PreServicioComponent],
+  template: `<app-pre-servicio />`,
+})
+export class AppComponent {}
+  imports: [CommonModule, FormsModule, CurrencyPipe, SummaryStickyComponent],
+  template: `
+  <div class="appShell">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="topbar">
+        <button class="back" type="button" aria-label="Volver">←</button>
+        <div class="title">
+          <div class="icon">📱</div>
+          <h1>PRE SERVICIO</h1>
+        </div>
+      </div>
+      <div class="subtitle">
+        <div class="badge">🧼</div>
+        <p>Aquí puedes seleccionar el servicio que necesitas antes de llegar a tu carwash</p>
+      </div>
+    </header>
+
+    <!-- LAYOUT: 2 columnas en desktop -->
+    <main class="layout">
+      <!-- LEFT -->
+      <section class="left">
+
+        <!-- 01 -->
+        <div class="step"><span>01.</span> Selecciona el tipo de vehículo</div>
+        <div class="card">
+          <div class="grid">
+            <button class="veh" type="button"
+              [class.selected]="vehicle() === 'chico'"
+              (click)="vehicle.set('chico')">
+              <div class="ico">🚗</div>
+              <div>
+                <div class="lbl">Chico</div>
+                <small>Compacto</small>
+              </div>
+            </button>
+
+            <button class="veh" type="button"
+              [class.selected]="vehicle() === 'mediano'"
+              (click)="vehicle.set('mediano')">
+              <div class="ico">🚙</div>
+              <div>
+                <div class="lbl">Mediano</div>
+                <small>Sedan/SUV</small>
+              </div>
+            </button>
+
+            <button class="veh" type="button"
+              [class.selected]="vehicle() === 'grande'"
+              (click)="vehicle.set('grande')">
+              <div class="ico">🛻</div>
+              <div>
+                <div class="lbl">Grande</div>
+                <small>Pick-up</small>
+              </div>
+            </button>
+
+            <button class="veh" type="button"
+              [class.selected]="vehicle() === 'extra'"
+              (click)="vehicle.set('extra')">
+              <div class="ico">🚚</div>
+              <div>
+                <div class="lbl">Extra grande</div>
+                <small>Van / Cargo</small>
+              </div>
+            </button>
+          </div>
+
+          <div class="field">
+            <label>Descripción del automóvil (Ej. Jetta rojo)</label>
+            <input class="input" [(ngModel)]="carDesc" placeholder="Ej. Pointer rojo" />
+          </div>
+        </div>
+
+        <!-- 02 -->
+        <div class="step"><span>02.</span> Selecciona el paquete</div>
+        <div class="card">
+          <label>Paquete</label>
+          <select class="input" [ngModel]="pkg()" (ngModelChange)="pkg.set($event)">
+            <option value="completo">Servicio completo</option>
+            <option value="exterior">Lavado exterior</option>
+            <option value="aspirado">Lavado + aspirado</option>
+            <option value="premium">Detallado premium</option>
+          </select>
+
+          <div class="priceBox">
+            <div class="priceTitle">Detalles del servicio</div>
+            <div class="price">
+              {{ basePrice() | currency:'MXN':'symbol':'1.2-2' }}
+            </div>
+            <div class="meta">
+              <span class="pill">⏱️ {{ durationMinutes() }} min</span>
+            </div>
+
+            <div class="list">
+              <div class="row">
+                <div class="leftRow">
+                  <p class="name">Aspirado cajuela</p>
+                </div>
+                <div class="rightRow">
+                  <input class="toggle" id="t-asp" type="checkbox" [checked]="aspiradoCajuela()" (change)="aspiradoCajuela.set(!aspiradoCajuela())" />
+                  <label class="switch" for="t-asp"></label>
+                </div>
+              </div>
+
+              <div class="row" style="align-items:flex-start;">
+                <div class="leftRow">
+                  <p class="name">Aromatizante en spray</p>
+                  <div class="radios">
+                    <label class="radio"><input type="radio" name="aroma" value="coco"   [checked]="aroma()==='coco'"   (change)="aroma.set('coco')"> Coco</label>
+                    <label class="radio"><input type="radio" name="aroma" value="canela" [checked]="aroma()==='canela'" (change)="aroma.set('canela')"> Canela</label>
+                    <label class="radio"><input type="radio" name="aroma" value="auto"   [checked]="aroma()==='auto'"   (change)="aroma.set('auto')"> Auto nuevo</label>
+                    <label class="radio"><input type="radio" name="aroma" value="brisa"  [checked]="aroma()==='brisa'"  (change)="aroma.set('brisa')"> Brisa marina</label>
+                  </div>
+                </div>
+                <div class="rightRow" style="padding-top:2px;">
+                  <input class="toggle" id="t-aro" type="checkbox" [checked]="aromatizante()" (change)="aromatizante.set(!aromatizante())" />
+                  <label class="switch" for="t-aro"></label>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="leftRow"><p class="name">Armor All en tablero</p></div>
+                <div class="rightRow">
+                  <input class="toggle" id="t-tab" type="checkbox" [checked]="armorTablero()" (change)="armorTablero.set(!armorTablero())" />
+                  <label class="switch" for="t-tab"></label>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="leftRow"><p class="name">Armor All en llantas</p></div>
+                <div class="rightRow">
+                  <input class="toggle" id="t-lla" type="checkbox" [checked]="armorLlantas()" (change)="armorLlantas.set(!armorLlantas())" />
+                  <label class="switch" for="t-lla"></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 -->
+        <div class="step">
+          <span>03.</span> Servicios adicionales <span class="mutedInline">(costo extra)</span>
+        </div>
+        <div class="addon" *ngFor="let a of adicionales()">
+          <div class="row">
+            <div class="leftRow">
+              <p class="name">{{ a.label }}</p>
+              <p class="hint">{{ a.price | currency:'MXN':'symbol':'1.2-2' }}</p>
+            </div>
+
+            <div class="rightRow qty">
+              <input class="toggle" [id]="'en_'+a.id" type="checkbox"
+                [checked]="enabled(a.id)"
+                (change)="toggleAddon(a.id)" />
+              <label class="switch" [for]="'en_'+a.id"></label>
+
+              <button class="counter" type="button" (click)="decQty(a.id)" [disabled]="!enabled(a.id)">−</button>
+              <input class="qtyInput" [value]="qty(a.id)" (input)="setQty(a.id, $any($event.target).value)" [disabled]="!enabled(a.id)" />
+              <button class="counter" type="button" (click)="incQty(a.id)" [disabled]="!enabled(a.id)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 04 -->
+        <div class="step">
+          <span>04.</span> Servicios especiales <span class="mutedInline">(costo extra)</span>
+        </div>
+        <div class="addon" *ngFor="let a of especiales()">
+          <div class="row">
+            <div class="leftRow">
+              <p class="name">{{ a.label }}</p>
+              <p class="hint">{{ a.price | currency:'MXN':'symbol':'1.2-2' }}</p>
+            </div>
+
+            <div class="rightRow qty">
+              <input class="toggle" [id]="'en_'+a.id" type="checkbox"
+                [checked]="enabled(a.id)"
+                (change)="toggleAddon(a.id)" />
+              <label class="switch" [for]="'en_'+a.id"></label>
+
+              <button class="counter" type="button" (click)="decQty(a.id)" [disabled]="!enabled(a.id)">−</button>
+              <input class="qtyInput" [value]="qty(a.id)" (input)="setQty(a.id, $any($event.target).value)" [disabled]="!enabled(a.id)" />
+              <button class="counter" type="button" (click)="incQty(a.id)" [disabled]="!enabled(a.id)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 05 -->
+        <div class="step">
+          <span>05.</span> Selecciona el método de pago <span class="mutedInline">al llegar al autolavado</span>
+        </div>
+        <div class="card">
+          <label class="payOpt">
+            <input type="radio" name="pay" value="efectivo" [checked]="pay()==='efectivo'" (change)="pay.set('efectivo')" />
+            💵 Pago en efectivo
+          </label>
+
+          <label class="payOpt">
+            <input type="radio" name="pay" value="tarjeta" [checked]="pay()==='tarjeta'" (change)="pay.set('tarjeta')" />
+            💳 Pago con tarjeta
+          </label>
+
+          <label class="payOpt">
+            <input type="radio" name="pay" value="saldo" [checked]="pay()==='saldo'" (change)="pay.set('saldo')" />
+            🧾 Pago con Saldo Carwash
+          </label>
+
+          <button class="btn" type="button" (click)="generateCode()">
+            ACEPTAR Y GENERAR CÓDIGO
+          </button>
+          <div class="terms">*Acepto los términos de uso</div>
+
+          <div class="code" *ngIf="code()">
+            <div class="codeLabel">Código generado</div>
+            <div class="codeValue">{{ code() }}</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT (sticky resumen) -->
+      <aside class="right">
+        <app-summary-sticky
+          [selection]="selection()"
+          [breakdown]="breakdown()"
+        ></app-summary-sticky>
+      </aside>
+    </main>
+
+  </div>
+  `,
   styles: [`
   :host{display:block}
   :root{}
@@ -277,59 +507,11 @@ interface Addon {
   .codeLabel{font-size:12px;color:var(--muted);font-weight:900}
   .codeValue{font-size:18px;font-weight:1000;letter-spacing:2px;margin-top:6px}
 
-  /* Summary */
-  .summary{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    box-shadow: var(--shadow);
-    padding:14px;
-  }
-  .summaryHeader{
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    align-items:flex-start;
-  }
-  .sumTitle{font-weight:1000}
-  .sumSub{font-size:12px;color:var(--muted);font-weight:800;margin-top:4px}
-  .sumTotal{
-    font-weight:1100;
-    font-size:18px;
-    padding:8px 10px;
-    border-radius:12px;
-    background:#f2f6ff;
-    border:1px solid #e8f0ff;
-    white-space:nowrap;
-  }
-
-  .summarySection{margin-top:12px}
-  .sectionTitle{font-size:12px;color:var(--muted);font-weight:1000;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
-  .sumRow{
-    display:flex;justify-content:space-between;gap:10px;
-    font-weight:900;font-size:13px;
-    padding:8px 0;
-  }
-  .sumRow strong{}
-  .mutedTiny{color:var(--muted);font-weight:900;font-size:12px}
-  .strong{font-weight:1100}
-
-  .divider{height:1px;background:var(--line);margin:10px 0}
-  .summaryFooter{margin-top:10px}
-
-  .btnSecondary{
-    width:100%;
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:12px 14px;
-    background:#fff;
-    font-weight:1000;
-    cursor:pointer;
-    margin-top:12px;
-  }
   `]
 })
 export class AppComponent {
+  private pricingService = inject(PricingService);
+
   // -------------------------
   // State (Signals)
   // -------------------------
@@ -347,14 +529,6 @@ export class AppComponent {
 
   carDesc = '';
 
-  // Base prices by package (puedes ajustar)
-  private pkgPrices: Record<PackageId, number> = {
-    completo: 83,
-    exterior: 65,
-    aspirado: 75,
-    premium: 140
-  };
-
   // Duration by package (mock)
   private pkgDuration: Record<PackageId, number> = {
     completo: 60,
@@ -363,25 +537,13 @@ export class AppComponent {
     premium: 90
   };
 
-  // Vehicle multipliers (mock, opcional). Si no quieres variación, pon todo en 1.
-  private vehicleFactor: Record<VehicleType, number> = {
-    chico: 1.0,
-    mediano: 1.1,
-    grande: 1.25,
-    extra: 1.4
-  };
-
   // Addons catalog
   private catalog: Addon[] = [
-    { id:'aroma_corcho', label:'Aroma a corcho', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-    { id:'bolsa_basura', label:'Bolsa de basura', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-    { id:'cera_lujo', label:'Cera de lujo', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-    { id:'par_tapetes', label:'Par de Tapetes (2 unid)', price:15, qtyEnabled:true, defaultQty:1, section:'adicional' },
-
-    { id:'corcho', label:'Corcho', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
-    { id:'ecoloco', label:'Ecoloco', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
-    { id:'extra_lodo', label:'Extra lodo', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
-    { id:'extra_sucio', label:'Extra sucio', price:15, qtyEnabled:true, defaultQty:1, section:'especial' },
+    ...this.pricingService.catalog.map((item) => ({
+      ...item,
+      qtyEnabled: true,
+      defaultQty: 1,
+    })),
   ];
 
   // Enabled + qty by addon id
@@ -410,12 +572,9 @@ export class AppComponent {
   // -------------------------
   // Computed
   // -------------------------
-  basePrice = computed(() => {
-    const p = this.pkgPrices[this.pkg()];
-    const factor = this.vehicleFactor[this.vehicle()];
-    // redondeo a 2 decimales (MXN)
-    return Math.round(p * factor * 100) / 100;
-  });
+  pricingBreakdown = computed(() => this.pricingService.getBreakdown(this.buildSelection()));
+
+  basePrice = computed(() => this.pricingBreakdown().base);
 
   durationMinutes = computed(() => this.pkgDuration[this.pkg()]);
 
@@ -429,18 +588,40 @@ export class AppComponent {
       .filter(a => enabledMap[a.id])
       .map(a => {
         const qty = Math.max(1, qtyMap[a.id] ?? 1);
-        const subtotal = Math.round(a.price * qty * 100) / 100;
-        return { ...a, qty, subtotal };
+        const unitPrice = this.pricingService.getAddonUnitPrice(a.id);
+        const subtotal = this.round(unitPrice * qty);
+        return {
+          ...a,
+          label: this.pricingService.getAddonLabel(a.id),
+          price: unitPrice,
+          qty,
+          subtotal,
+        };
       });
   });
 
-  extrasTotal = computed(() => {
-    return this.selectedAddons().reduce((acc, it) => acc + it.subtotal, 0);
-  });
+  extrasTotal = computed(() => this.pricingBreakdown().extras);
 
-  total = computed(() => {
-    const t = this.basePrice() + this.extrasTotal();
-    return Math.round(t * 100) / 100;
+  total = computed(() => this.pricingBreakdown().total);
+
+  selection = computed<PreServicioSelection>(() => ({
+    vehicle: this.vehicleLabel(this.vehicle()),
+    paymentMethod: this.payLabel(this.pay())
+  }));
+
+  breakdown = computed<PricingBreakdown>(() => {
+    const lines = [
+      {
+        label: `Base (${this.pkgLabel(this.pkg())})`,
+        amount: this.basePrice()
+      },
+      ...this.selectedAddons().map(item => ({
+        label: `${item.label}${item.qty > 1 ? ` ×${item.qty}` : ''}`,
+        amount: item.subtotal
+      }))
+    ];
+    const total = lines.reduce((acc, line) => acc + line.amount, 0);
+    return { lines, total: Math.round(total * 100) / 100 };
   });
 
   // -------------------------
@@ -507,5 +688,26 @@ export class AppComponent {
 
   scrollTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private buildSelection(): PreServicioSelection {
+    const enabledMap = this.addonEnabled();
+    const qtyMap = this.addonQty();
+    const addons = this.catalog
+      .filter((addon) => enabledMap[addon.id])
+      .map((addon) => ({
+        id: addon.id,
+        qty: Math.max(1, qtyMap[addon.id] ?? 1),
+      }));
+
+    return {
+      vehicle: this.vehicle(),
+      packageId: this.pkg(),
+      addons,
+    };
+  }
+
+  private round(n: number): number {
+    return Math.round(n * 100) / 100;
   }
 }
