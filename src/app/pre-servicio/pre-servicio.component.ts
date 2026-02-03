@@ -27,7 +27,7 @@ import { SummaryStickyComponent } from './summary-sticky.component';
         </div>
         <div class="block">
           <label>Paquete</label>
-          <select [value]="pkg()" (change)="pkg.set(($event.target as HTMLSelectElement).value)">
+          <select [value]="pkg()" (change)="pkg.set($any($event.target).value)">
             <option *ngFor="let item of packages" [value]="item.id">{{ item.label }}</option>
           </select>
         </div>
