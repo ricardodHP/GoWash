@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SummaryStickyComponent } from './summary-sticky.component';
 import { PricingService } from './pricing.service';
 import { AddonId, PackageId, PreServicioSelection, VehicleType } from './models';
 
@@ -18,7 +19,7 @@ interface Addon {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, CurrencyPipe],
+  imports: [CommonModule, FormsModule, CurrencyPipe, SummaryStickyComponent],
   template: `
   <div class="appShell">
 
@@ -242,54 +243,10 @@ interface Addon {
 
       <!-- RIGHT (sticky resumen) -->
       <aside class="right">
-        <div class="summary">
-          <div class="summaryHeader">
-            <div>
-              <div class="sumTitle">Resumen de compra</div>
-              <div class="sumSub">
-                Vehículo: <b>{{ vehicleLabel(vehicle()) }}</b> · Paquete: <b>{{ pkgLabel(pkg()) }}</b>
-              </div>
-            </div>
-            <div class="sumTotal">
-              {{ total() | currency:'MXN':'symbol':'1.2-2' }}
-            </div>
-          </div>
-
-          <div class="summarySection">
-            <div class="sumRow">
-              <span>Base ({{ pkgLabel(pkg()) }})</span>
-              <span>{{ basePrice() | currency:'MXN':'symbol':'1.2-2' }}</span>
-            </div>
-          </div>
-
-          <div class="summarySection" *ngIf="selectedAddons().length">
-            <div class="sectionTitle">Extras</div>
-
-            <div class="sumRow" *ngFor="let item of selectedAddons()">
-              <span>
-                {{ item.label }}
-                <span class="mutedTiny" *ngIf="item.qty > 1">×{{ item.qty }}</span>
-              </span>
-              <span>{{ item.subtotal | currency:'MXN':'symbol':'1.2-2' }}</span>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="summaryFooter">
-            <div class="sumRow strong">
-              <span>Total</span>
-              <span>{{ total() | currency:'MXN':'symbol':'1.2-2' }}</span>
-            </div>
-            <div class="mutedTiny" style="margin-top:6px;">
-              Pago: <b>{{ payLabel(pay()) }}</b>
-            </div>
-
-            <button class="btnSecondary" type="button" (click)="scrollTop()">
-              Editar selección
-            </button>
-          </div>
-        </div>
+        <app-summary-sticky
+          [selection]="selection()"
+          [breakdown]="breakdown()"
+        ></app-summary-sticky>
       </aside>
     </main>
 
@@ -542,56 +499,6 @@ interface Addon {
   .codeLabel{font-size:12px;color:var(--muted);font-weight:900}
   .codeValue{font-size:18px;font-weight:1000;letter-spacing:2px;margin-top:6px}
 
-  /* Summary */
-  .summary{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    box-shadow: var(--shadow);
-    padding:14px;
-  }
-  .summaryHeader{
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    align-items:flex-start;
-  }
-  .sumTitle{font-weight:1000}
-  .sumSub{font-size:12px;color:var(--muted);font-weight:800;margin-top:4px}
-  .sumTotal{
-    font-weight:1100;
-    font-size:18px;
-    padding:8px 10px;
-    border-radius:12px;
-    background:#f2f6ff;
-    border:1px solid #e8f0ff;
-    white-space:nowrap;
-  }
-
-  .summarySection{margin-top:12px}
-  .sectionTitle{font-size:12px;color:var(--muted);font-weight:1000;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
-  .sumRow{
-    display:flex;justify-content:space-between;gap:10px;
-    font-weight:900;font-size:13px;
-    padding:8px 0;
-  }
-  .sumRow strong{}
-  .mutedTiny{color:var(--muted);font-weight:900;font-size:12px}
-  .strong{font-weight:1100}
-
-  .divider{height:1px;background:var(--line);margin:10px 0}
-  .summaryFooter{margin-top:10px}
-
-  .btnSecondary{
-    width:100%;
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:12px 14px;
-    background:#fff;
-    font-weight:1000;
-    cursor:pointer;
-    margin-top:12px;
-  }
   `]
 })
 export class AppComponent {
@@ -688,6 +595,26 @@ export class AppComponent {
   extrasTotal = computed(() => this.pricingBreakdown().extras);
 
   total = computed(() => this.pricingBreakdown().total);
+
+  selection = computed<PreServicioSelection>(() => ({
+    vehicle: this.vehicleLabel(this.vehicle()),
+    paymentMethod: this.payLabel(this.pay())
+  }));
+
+  breakdown = computed<PricingBreakdown>(() => {
+    const lines = [
+      {
+        label: `Base (${this.pkgLabel(this.pkg())})`,
+        amount: this.basePrice()
+      },
+      ...this.selectedAddons().map(item => ({
+        label: `${item.label}${item.qty > 1 ? ` ×${item.qty}` : ''}`,
+        amount: item.subtotal
+      }))
+    ];
+    const total = lines.reduce((acc, line) => acc + line.amount, 0);
+    return { lines, total: Math.round(total * 100) / 100 };
+  });
 
   // -------------------------
   // UI helpers

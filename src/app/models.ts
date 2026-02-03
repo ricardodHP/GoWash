@@ -1,3 +1,4 @@
+export interface PricingLine {
 export type VehicleType = 'chico' | 'mediano' | 'grande' | 'extra';
 export type PackageId = 'completo' | 'exterior' | 'aspirado' | 'premium';
 export type PayMethod = 'efectivo' | 'tarjeta' | 'saldo';
@@ -36,6 +37,13 @@ export interface PricingLine {
 }
 
 export interface PricingBreakdown {
+  lines: PricingLine[];
+  total: number;
+}
+
+export interface PreServicioSelection {
+  vehicle: string;
+  paymentMethod: string;
   base: number;
   extras: number;
   total: number;
