@@ -32,8 +32,8 @@ export class PreServicioComponent {
   
     // addons enabled + qty
     private enabledMap = signal<Record<AddonId, boolean>>({
-      aroma_corcho:false, bolsa_basura:false, cera_lujo:false, par_tapetes:true,
-      corcho:false, ecoloco:false, extra_lodo:false, extra_sucio:true
+      aroma_corcho:false, bolsa_basura:false, cera_lujo:false, par_tapetes:false,
+      corcho:false, ecoloco:false, extra_lodo:false, extra_sucio:false
     });
   
     private qtyMap = signal<Record<AddonId, number>>({
