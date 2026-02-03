@@ -1,4 +1,7 @@
 export type VehicleType = 'chico' | 'mediano' | 'grande' | 'extra';
+
+export type PayMethod = 'efectivo' | 'tarjeta' | 'saldo';
+
 export type PackageId = 'completo' | 'exterior' | 'aspirado' | 'premium';
 
 export type AddonId =
@@ -11,29 +14,33 @@ export type AddonId =
   | 'extra_lodo'
   | 'extra_sucio';
 
-export interface Addon {
+export interface AddonCatalogItem {
   id: AddonId;
   label: string;
   price: number;
-  qtyEnabled: boolean;
-  defaultQty: number;
   section: 'adicional' | 'especial';
 }
 
-export interface PackageConfig {
-  id: PackageId;
-  label: string;
-  basePrice: number;
-  durationMinutes: number;
+export interface AddonSelection {
+  id: AddonId;
+  qty: number;
 }
 
-export interface VehicleConfig {
-  type: VehicleType;
-  label: string;
-  factor: number;
+export interface PreServicioSelection {
+  vehicle: VehicleType;
+  packageId: PackageId;
+  addons: AddonSelection[];
 }
 
-export interface SummaryLine {
+export interface PricingLine {
+  key: string;
   label: string;
   amount: number;
+}
+
+export interface PricingBreakdown {
+  base: number;
+  extras: number;
+  total: number;
+  lines: PricingLine[];
 }

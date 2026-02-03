@@ -1,10 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { PreServicioSelection, PricingBreakdown } from './models';
 
 @Component({
   selector: 'app-summary-sticky',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe],
+  imports: [CommonModule, CurrencyPipe, FormsModule],
   template: `
     <aside class="summary">
       <div class="header">
@@ -56,4 +58,8 @@ export class SummaryStickyComponent {
   @Input() packageLabel = '';
   @Input() durationMinutes = 0;
   @Input() total = 0;
+  @Input({ required: true }) selection!: PreServicioSelection;
+  @Input({ required: true }) breakdown!: PricingBreakdown;
+
+  scrollTop(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
