@@ -25,7 +25,7 @@ export class PreServicioComponent {
     details = {
       aspiradoCajuela: signal(true),
       aromatizante: signal(true),
-      aroma: signal<'coco'|'canela'|'auto'|'brisa'>('canela'),
+      aroma: signal<'coco'|'canela'|'fresa'|'auto'|'brisa'>('canela'),
       armorTablero: signal(false),
       armorLlantas: signal(false),
     };
